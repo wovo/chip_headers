@@ -1,0 +1,131 @@
+
+        RCC->APB2ENR |=
+                RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN |
+                RCC_APB2ENR_IOPCEN | UART_APB2ENR_IOPDEN;
+                
+
+RCC::APB2ENR |=
+   RCC::APB2ENR::IOPAEN | RCC::APB2ENR::IOPBEN |
+   RCC::APB2ENR::IOPCEN | RCC::APB2ENR::IOPDEN;
+   
+- only one value from each enumerate
+- operator = can be used when all values are provided
+- bezwaar: hoe om te gaan met andden met het masker??
+- hoe omgaan met een literal value (7), of een berekende waarde
+
+set( RCC::APB2ENR::IOPAEN | RCC::APB2ENR::IOPBEN | RCC::APB2ENR::IOPCEN | RCC::APB2ENR::IOPDEN | UART::TXREG::ENABLE );
+
+constexpr uint64_t field_mask( int start_bit, int number_of_bits ){
+   if( number_of_bits == 0 ){
+      return 0;
+   else if( start_bit == 0 )
+      return 0b01 | ( field_mask( 0, number_of_bits - 1 ) << 1 );
+   else {
+      return field_mask( 0, number_of_bits ) << start_bit;
+   }   
+}
+
+
+template< int class_register_address >
+struct register_field_value {
+   uint64_t used;
+   uint64_t mask;
+   uint64_t value;
+   bool inverted;
+
+   constexpr register_field_value( 
+      uint64_t used, 
+      uint64_t mask, 
+      uint64_t value,
+      bool inverted
+   ): 
+      used( used ),
+      mask( make_value( mask ),
+      value( value ),
+      inverted( inverted )
+   {}   
+   
+   constexpr register_field_value operator | ( 
+      register_field_value rhs 
+   ) const 
+   {
+      // require: not inverted
+      return register_field_value( 
+         used | rhs.used, 
+         0, 
+         value | rhs.value,
+         false
+      );
+   }   
+   
+   constexpr register_field_value operator ! ( 
+      register_field_value rhs 
+   ) const 
+   {
+      // require: not inverted
+      return register_field_value( 
+         used | rhs.used, 
+         mask | rhs.mask, 
+         0,
+         true         
+      );
+   }   
+   
+   constexpr register_field_value operator & ( 
+      register_field_value rhs 
+   ) const 
+   {
+      // require: not inverted
+      return register_field_value( 
+         used | rhs.used, 
+         mask | rhs.mask, 
+         0,
+         false
+      );
+   }   
+   
+};
+
+template< 
+   typename T, 
+   uint64_t register_address, 
+   uint64_t class_register_address = register_address 
+>
+class peripheral_register {
+public:
+
+   void register_field_value operator &= ( 
+      register_field_value< class_register_address > rhs 
+   ){
+      ( * ( volatile T * ) register_address ) = 
+         ( ( * ( volatile T * ) regsister_address ) & ~ rhs.mask ) | rhs.value;   
+   }   
+   
+   void register_field_value operator |= ( 
+      register_field_value< class_register_address > rhs 
+   ){
+      ( * ( volatile T * ) register_address ) = 
+         ( ( * ( volatile T * ) regsister_address ) & ~ rhs.mask ) | rhs.value;   
+   }   
+   
+   void register_field_value operator = ( 
+      register_field_value< class_register_address > rhs 
+   ){
+      ( * ( volatile T * ) register_address ) = 
+         ( ( * ( volatile T * ) regsister_address ) & ~ rhs.mask ) | rhs.value;   
+   }   
+   
+   void register_field_value operator << ( 
+      register_field_value< class_register_address > rhs 
+   ){
+      ( * ( volatile T * ) register_address ) = 
+         ( ( * ( volatile T * ) regsister_address ) & ~ rhs.mask ) | rhs.value;   
+   }   
+   
+};
+
+R &= ~ a;
+R |= b;
+v << n ==> peripheral register value
+mask << n ==> mask value
+R = ( R & a ) | b;

@@ -1,0 +1,2 @@
+bmptk-make renumber
+pause

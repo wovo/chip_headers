@@ -1,0 +1,35 @@
+chip_headers
+chip_registers
+target_headers
+hardware_registers
+manufacturer - nee
+
+
+struct uart_control { ... };
+
+struct uart { uart_control control; ... };
+uart1 * uart;
+
+uart1->control << uart_control::parity_odd + uart_control::handshake_off + uart_control::baudrate( 1200 );
+
+uart1->control << 
+   uart_control::parity_odd  +
+   uart_control::handshake_off + 
+   uart_control::baudrate( 1200 );
+
+uart1->control << parity_odd + handshake_off  + baudrate( 1200 );
+
+uart1->control.parity = parity_odd;
+uart1->control.handshake = uart_control_handshake_off;
+uart1->control.baudrate = baudrate( 1200 );
+
+uart1->control.set( parity_odd );
+uart1->control.set( uart_control_handshake_off );
+uart1->control.set( baudrate( 1200 ) );
+
+uart1->control.set( parity_odd ).set( uart_control_handshake_off ).set( baudrate( 1200 ) );
+
+
+while( ! uart1->control.char_available ){}
+return uart1->txd;
+
