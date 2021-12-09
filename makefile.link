@@ -10,7 +10,7 @@
 #
 #============================================================================
 
-CPP_LANGUAGE      ?= -std=c++20
+CPP_LANGUAGE      ?= -std=c++20 -Wno-volatile
 
 # get the paths 
 RELATIVE          ?= .
